@@ -18,3 +18,10 @@ Githubにコードをpushすると、その変更に応じてビルド、テス�
 
 
 支払いや制限周りは公式ドキュメント参照　https://docs.github.com/ja/free-pro-team@latest/github/setting-up-and-managing-billing-and-payments-on-github/about-billing-for-github-actions
+
+
+#### Hello world!
+.github/workflows/hello.yml
+
+pushされるたびにhello worldが実行されるワークフロー
+
