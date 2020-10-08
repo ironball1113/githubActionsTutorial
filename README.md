@@ -15,6 +15,7 @@
 - 第3章：アクション
 - 第4章：サンプルレシピ
 
+# 各章メモ
 
 
 <details>
@@ -374,10 +375,8 @@ REST APIを使うと以下のことが可能。
 </details>
 
 
-<!-- <details>
-<summary>第1章：Github Actionsの基礎知識</summary> -->
-
-# 第3章：アクション
+<details>
+<summary>第3章：アクション</summary>
 
 ### アクションとは？
 GithubActionsの用語で、アクションという単位で実行可能なタスクを作成できる。
@@ -386,3 +385,38 @@ GithubActionsの用語で、アクションという単位で実行可能なタ�
 - javascript：Linux, Windows, macOSで利用可能
 - Docker: Linuxで利用可能
 
+公開するアクションの管理には専用のリポジトリを作成することが推奨されている。
+非公開のアクションの管理にはそのアクションを利用するリポジトリの`.github/actions`に保存することが推奨されている。
+
+またアクションの制御として使用できるアクションの制限が行える。利用するアクションをorganization内に限定する場合、公式のcheckout等も使えなくなるため、その場合にはforkしておく必要がある。
+
+### README.mdについて
+公開するアクションを保存するリポジトリのREADME.mdには次の情報を含めることが推奨されている。
+
+- アクションが何をするかの詳細な説明
+- inputsとoutputsについての説明
+- アクションが使用する秘密情報・環境変数の説明
+- アクションのワークフロー内での使用例
+
+### 公式テンプレート
+
+Githubが提供するアクション作成のテンプレートがある。
+
+- actions/javascriptaction https://github.com/actions/javascript-action
+- actions/typescript-action https://github.com/actions/typescript-action
+- actions/container-action https://github.com/actions/container-action
+
+</details>
+
+<details>
+<summary>第4章：サンプルレシピ</summary>
+ 
+ サンプルレシピの実装例については[こちら](https://github.com/github-actions-up-and-running)
+ 
+- ジョブ失敗時にSlack通知
+- ワークフロー実行環境にSSHしてデバッグ
+- DockerイメージをGithubパッケージで公開
+- reviewdogでLintの結果をプルリクエストに表示
+- Terraform Github ActionsでAWSにデプロイ
+
+</details>
