@@ -2,21 +2,24 @@
 
 各章の内容は`ch?`ディレクトリの中にまとめることとする。
 
-公式ドキュメント https://docs.github.com/ja/free-pro-team@latest/actions
+# 参考
 
-GithubActions実践入門 https://www.amazon.co.jp/GitHub-Actions-%E5%AE%9F%E8%B7%B5%E5%85%A5%E9%96%80-%E6%8A%80%E8%A1%93%E3%81%AE%E6%B3%89%E3%82%B7%E3%83%AA%E3%83%BC%E3%82%BA%EF%BC%88NextPublishing%EF%BC%89-%E5%AE%AE%E7%94%B0/dp/4844378716
+## [Github公式ドキュメント](https://docs.github.com/ja/free-pro-team@latest/actions)
+## [GithubActions実践入門](https://www.amazon.co.jp/GitHub-Actions-%E5%AE%9F%E8%B7%B5%E5%85%A5%E9%96%80-%E6%8A%80%E8%A1%93%E3%81%AE%E6%B3%89%E3%82%B7%E3%83%AA%E3%83%BC%E3%82%BA%EF%BC%88NextPublishing%EF%BC%89-%E5%AE%AE%E7%94%B0/dp/4844378716)
+## [GithubActions実践入門リポジトリ](https://github.com/github-actions-up-and-running)
 
-GithubActions実践入門リポジトリ https://github.com/github-actions-up-and-running
 
-
-## 目次
+# 目次
 - 第1章：Github Actionsの基礎知識
 - 第2章：Github Actionsの機能解説
 - 第3章：アクション
 - 第4章：サンプルレシピ
 
 
-## 第1章：Github Actionsの基礎知識
+
+<details>
+<summary>第1章：Github Actionsの基礎知識</summary>
+
 
 - Git:ソースコードのバージョンを管理するツール
 - Github: Gitを利用した、開発者を支援するWebサービス
@@ -35,8 +38,12 @@ Githubにコードをpushすると、その変更に応じてビルド、テス�
 - pushされるたびにhello worldが実行される
 - commit名がワークフローの名前としてActionsページに表示される
 
+</details>
 
-## 第2章：Github Actionsの機能解説
+
+<details>
+<summary>第2章：Github Actionsの機能解説</summary>
+
 
 ### ワークフローとは？
 ワークフローとは、ソフトウェア開発における何かしらの処理を自動実行する物。
@@ -159,7 +166,7 @@ jobs:
         - デフォルトでfalse（trueにすると失敗してもワークフロー継続）
 
 
-### 秘密情報の取り扱い
+#### 秘密情報の取り扱い
 - 外部サービスにアクセスするための認証情報などをワークフロー内部で使いたい場合、Settings -> Secretsに秘密情報を登録する。
 - 最大100個登録可能で、秘密情報の名前にはアルファベットと_しか使えない。
 - ログに表示される場合、自動でマスクされる仕組みにはなっているが極力自前でログに出力されないようコードを書いた方が良い
@@ -172,7 +179,7 @@ jobs:
 
 権限の詳細についてはこちら(https://docs.github.com/en/free-pro-team@latest/rest/reference/permissions-required-for-github-apps)
 
-### イベントフィルタ
+#### イベントフィルタ
 
 `.github/workflows/???.yml`の冒頭にある`on`にはイベントトリガーを指定するが、これに条件付けすることでフィルタリングが可能である。
 条件づけの方法はいくつかある。
@@ -182,22 +189,200 @@ jobs:
     - ブランチ・タグのどちらかしか指定しない場合、指定されていないイベントは全て除外される
     - 正規表現でブランチ・タグの指定ができる(例：release/で始まるブランチを指定)
 
-例：マスターにpushされた時のみWF実行
-```
-on:
-  push:
-    branches:
-      - master
-```
 
 - ファイルパス
     - パスが指定されている場合、ファイルに変更がない場合にはワークフローは実行されない
 
 
-例：任意のJSファイルが変更された時のみ実行する
+- 特定のアクティビティ（issue_comment -> created, edited, deleted）
+    - 上記三種類の内一つを指定するなどができる
+
+#### ジョブ間の依存関係
+通常、jobsで定義したジョブは並列実行される。しかし、ジョブ1とあとにジョブ2を実行したいという場合がある。この場合、job_id下で`needs`を指定すれば、依存元を定義できる.
+
+#### ジョブ間のアウトプットの受け渡し
+`needs`でジョブ間の依存関係を定義すると、アウトプットの受け渡しもしたくなる。
+この場合はjob_id下で`outputs`を定義する。`outputs`はsteps終了時に評価される。
+
+
+#### マトリクスビルド
+ワークフローの実行を特定のパラメータの組み合わせで繰り返し実行したい場合がある。例えば、OSとプログラミング言語のバージョンの組み合わせとか。その場合、jobs下で`strategy`を定義する。
+
+例:osとnodeバージョンの組み合わせ
 ```
-on: 
-  push:
-    paths:
-      - '**.js'
+unit-test:
+    name: Unit Test
+    strategy:
+        matrix:
+          os: [ubuntu-latest, windows-latest, macos-latest]
+          node: [10,12]
+    runs-on: ${{ matrix.os }}
 ```
+
+また、`strategy.matrix.include`を用いると、特定の組み合わせの時のみ新しい変数の追加・存在しない新しい組み合わせの追加が可能。
+逆に`strategy.matrix.exclude`は特定の組み合わせを実行しないようにできる。
+
+#### スケジュール実行
+
+依存ライブラリの脆弱性チェックなどを定期的に行いたい場合、スケジュール実行が可能。
+しかし、スケジュール実行はデフォルトブランチの最新コミットでのみ設定されることに注意。
+スケジュール設定はcronで行う。
+
+#### コンテキスト
+ワークフローに与えられる実行時の情報をコンテキストという。jobuやstepsなどをさす。
+詳しくは[こちら](https://docs.github.com/ja/free-pro-team@latest/actions/reference/context-and-expression-syntax-for-github-actions)
+
+#### ジョブのコンテナ内実行
+ワークフロー内のジョブはVM環境上で実行してきたが、ジョブをコンテナ内で実行することが可能。
+
+詳しくは[こちら](https://docs.github.com/ja/free-pro-team@latest/actions/creating-actions/creating-a-docker-container-action)
+```
+jobs:
+    unit0test:
+        runs-on: ubuntu-latest
+        container:
+            image: node:12.14.1-streatch
+            env:
+                NODE_ENV: development
+            ports:
+                - 8080
+            options: --cpus 1
+        steps:
+            .....
+```
+
+
+例えば、ワークフローの実行中に何かしらのサービスを立ち上げたい場合に使用する。例としてDBを立ち上げておいて、それを参照するなどである。コレをサービスコンテナと良いjobs直下で`services`を定義する。
+
+
+### キャッシュ
+CI/CDではリポジトリの依存するパッケージのダウンロードが理由でビルド時間が長くなることがある。コレは実行ごとにクリーンな環境を構築するため、ダウンロードファイルが持ち越されないことが理由である。
+
+そこでCI/CDが用意するキャッシュ機能を用いて、ダウンロードパッケージの使い回すことでクリーンな環境を用意しつつダウンロードの重複を回避することが一般的である。コレはGithubActionsでも使用可能である。
+
+### アーティファクト
+CI/CDではビルド中に生成したファイルをビルド後に利用したい場合がある。例えば、アーカイブなどの成果物やログやテスト結果などである。アーティファクトという機能はコレら成果物を保存しておくための機能である。
+
+アーティファクトを保存する際には`actions/upload-artifact`を使う。これは公式で提供されているアクションである。
+
+```
+- name: Upload test coverage
+  uses: actions/upload-artifact@v2
+  with:
+    name: test-coverage-${{ matrix.os }}-${{ matrix.node }}
+    path: coverage
+```
+
+`download-artifact`もある。一つ前のjobでuploadされたアーティファクトを以降のjobでdownloadすることがこれで可能になる。しかし、ワークフローをまたいでは実行できない。
+また、保存期間は90日である。
+
+### ログによるコマンド実行
+ワークフロー実行中echoなどでログに特定のフォーマットの文字列を出力することで以下のことが可能。
+
+- 環境変数の設定
+- アウトプットの設定
+- PATHの追加
+- debug, warning, errorメッセージの追加
+- ログのマスク
+- コマンド実行の停止・再開
+
+コマンド実行の雛形
+```
+$ echo "::<COMMAND> <PARAM1>=<VALUE1>, <PARAM2>=<VALUE2>::<COMMAND VALUE>"
+```
+
+例えば、環境変数の設定の場合
+```
+$ echo "::set-env name=TZ::Asia/Tokyo"
+# echo "::<set-env> <name>=<TZ>::<Asia/Tokyo>"
+```
+これによりTZというパラメータにAsia/Tokyoが設定される。
+
+以下に実行できるコマンドについて大雑把に整理する。
+
+- 環境変数の設定:set-env
+    - 設定したstepの次のstepからアクセス可能
+- アウトプットの設定：set-output
+- PATHの追加：add-path
+    - 設定したstepの次のstepからアクセス可能
+- デバッグメッセージの出力
+    - debug  `$ echo "::debug::Debug Message"`
+    - warning  `$ echo "::warning::Warning Message"`
+    - error  `$ echo "::error::Error Message"`
+    - 静的解析ツールでファイルに対しての警告メッセージをpull requestに仕込める
+- ログのマスク：add-mask
+    - `$echo "::add-mask::password"`
+    - passwordで設定した値がログ上でマスクされる
+- コマンド実行の停止・再開:stop-commands
+    - `$echo "::stop-commands::stop"`
+    - これまで紹介したコマンドを文字列として出力する
+    - このコマンド実行後のログからコマンド処理がされなくなる
+
+### ワークフローのデバック
+秘密情報でACTIONS_STEP_DEBUG=trueを設定するとデバッグ情報が出力される 
+
+
+### 権限
+read権限があれば以下のことが可能
+- Actionsタブの閲覧
+- forkしてプルリクエストイベントでワークフローの実行
+
+以下のことはできない
+- 秘密情報のアクセス、閲覧
+
+### 通知
+settings-> Nortificationsから設定可能。
+
+
+### ランナーのセルフホスティング
+
+通常のワークフローではGithubの提供するVM環境で実行される。しかし、セルフホストランナーを使うことで、カスタムしたVM環境でワークフローを実行できる。
+つまりは次のようなケースで使うことがある。
+
+- CPUやメモリを激しく消費するジョブを実行したい
+- プライベートネットワーク内でジョブを実行したい
+- Githubが提供していないOS上でジョブを実行したい
+
+詳しくは[こちら](https://docs.github.com/ja/free-pro-team@latest/actions/hosting-your-own-runners/about-self-hosted-runners)
+
+Githubの提供する環境とセルフホストランナーの違いはいくつかある
+
+- Github提供
+    - 環境の自動更新
+    - 運用コストがかからない
+    - ジョブ実行ごとにクリーンになる
+    - プライベートリポジトリだと料金がかかる
+- セルフホストランナー
+    - 既存のマシンやクラウドサービスのリソースを使える
+    - 環境をカスタマイズ（ハードウェア、OS、セキュリティ、ソフトウェア）
+    - ジョブ実行間で環境持ち越し
+    - プライベートリポジトリでも無料
+    - 運用コストがかかる
+
+
+### REST API
+REST APIを使うと以下のことが可能。
+
+- アーティファクトの取得、削除
+- 秘密情報の設定、削除
+- セルフホストランナーのステータス取得
+- etc
+
+詳しくは[こちら](https://docs.github.com/en/free-pro-team@latest/rest/reference/actions)
+
+
+</details>
+
+
+<!-- <details>
+<summary>第1章：Github Actionsの基礎知識</summary> -->
+
+# 第3章：アクション
+
+### アクションとは？
+GithubActionsの用語で、アクションという単位で実行可能なタスクを作成できる。
+アクションには現状二種類存在する。
+
+- javascript：Linux, Windows, macOSで利用可能
+- Docker: Linuxで利用可能
+
